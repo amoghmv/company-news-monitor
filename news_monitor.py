@@ -120,8 +120,8 @@ for entry in all_entries:
 
     source = get_source(entry)
     message += (
-    f"• <b>[{source}]</b>\n"
-    f"<a href=\"{link}\">{title}</a>\n\n"
+        f"• <b>[{source}]</b>\n"
+        f"<a href=\"{link}\">{title}</a>\n\n"
 )
 
     seen.add(link)
