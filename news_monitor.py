@@ -107,11 +107,11 @@ for entry in all_entries:
         f"• <b>{title}</b>\n"
         f"<a href=\"{link}\">Read article →</a>\n\n"
 )
-    )
 
-    count += 1
-    if count >= 15:
-        break
+count += 1
+if count >= 15:
+    break
+
 
 print(message)
 send_telegram_message(message)
