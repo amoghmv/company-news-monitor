@@ -6,6 +6,35 @@ import subprocess
 
 RSS_URL = "https://news.google.com/rss/search?q=financial+markets"
 
+MARKET_KEYWORDS = [
+    "stock", "stocks", "equity", "equities",
+    "share", "shares", "index", "indices",
+    "market", "markets"
+]
+
+EVENT_KEYWORDS = [
+    "earnings", "results", "guidance",
+    "ipo", "listing", "delisting",
+    "merger", "acquisition", "m&a",
+    "buyback", "dividend", "split",
+    "downgrade", "upgrade",
+    "sec", "lawsuit", "antitrust"
+]
+
+MACRO_KEYWORDS = [
+    "interest rates", "inflation", "cpi",
+    "federal reserve", "fed",
+    "central bank", "recession",
+    "gdp", "unemployment",
+    "bond yields", "treasury"
+]
+
+ALL_KEYWORDS = (
+    MARKET_KEYWORDS +
+    EVENT_KEYWORDS +
+    MACRO_KEYWORDS
+)
+
 def send_telegram_message(message):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
