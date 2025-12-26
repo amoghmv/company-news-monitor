@@ -84,7 +84,7 @@ def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
         "chat_id": chat_id,
-        "text": messagem,
+        "text": message,
         "parse_mode": "HTML"
     }
 
@@ -105,7 +105,6 @@ for url in RSS_FEEDS:
     all_entries.extend(feed.entries)
 
 message = "📊 <b>Market News Update</b>\n\n"
-message += f"- [{source}] {title}\n"
 
 count = 0
 for entry in all_entries:
@@ -119,19 +118,14 @@ for entry in all_entries:
         continue
 
     source = get_source(entry)
+
     message += (
         f"• <b>[{source}]</b>\n"
         f"<a href=\"{link}\">{title}</a>\n\n"
-)
+    )
 
     seen.add(link)
     count += 1
 
     if count >= 5:
         break
-
-print(message)
-send_telegram_message(message)
-
-with open(SEEN_FILE, "w") as f:
-    json.dump(list(seen), f)
