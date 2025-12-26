@@ -66,3 +66,5 @@ if os.getenv("GITHUB_ACTIONS") == "true":
     subprocess.run(["git", "add", "seen.json"])
     subprocess.run(["git", "commit", "-m", "Update seen news"], check=False)
     subprocess.run(["git", "push"], check=False)
+
+send_telegram_message("✅ Test: MTE News bot is live")
