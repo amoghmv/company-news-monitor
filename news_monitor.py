@@ -5,19 +5,9 @@ import requests
 import subprocess
 
 RSS_FEEDS = [
-    # Google News (broad)
     "https://news.google.com/rss/search?q=stock+market",
-
-    # Yahoo Finance
     "https://finance.yahoo.com/rss/topstories",
-
-    # Reuters – markets
     "https://feeds.reuters.com/reuters/businessNews",
-
-    # Bloomberg (public mirror)
-    "https://www.bloomberg.com/feed/podcast/etf-report.xml",
-
-    # CNBC Markets
     "https://www.cnbc.com/id/10000664/device/rss/rss.html"
 ]
 
@@ -44,19 +34,15 @@ MACRO_KEYWORDS = [
     "bond yields", "treasury"
 ]
 
-ALL_KEYWORDS = (
-    MARKET_KEYWORDS +
-    EVENT_KEYWORDS +
-    MACRO_KEYWORDS
-)
-
+ALL_KEYWORDS = MARKET_KEYWORDS + EVENT_KEYWORDS + MACRO_KEYWORDS
 SEEN_FILE = "seen.json"
 
 def is_relevant(text):
     text = text.lower()
     score = sum(1 for k in ALL_KEYWORDS if k in text)
     return score >= 1
-    
+
+
 def get_source(entry):
     link = entry.get("link", "").lower()
 
@@ -72,6 +58,7 @@ def get_source(entry):
         return "Google News"
 
     return "News"
+
 
 def send_telegram_message(message):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -91,12 +78,11 @@ def send_telegram_message(message):
     r = requests.post(url, data=payload)
     print("Telegram status:", r.status_code, r.text)
 
-# Load seen links
-if os.path.exists(SEEN_FILE):
-    with open(SEEN_FILE, "r") as f:
-        seen = set(json.load(f))
-else:
-    seen = set()
+# --------------------------------
+# - seen.json
+# - is_relevant()
+# - deduplication
+# --------------------------------
 
 all_entries = []
 
@@ -104,18 +90,19 @@ for url in RSS_FEEDS:
     feed = feedparser.parse(url)
     all_entries.extend(feed.entries)
 
-message = "📊 <b>Market News Update</b>\n\n"
+message = "📊 <b>Market News Update (TEST MODE)</b>\n\n"
 
 count = 0
 for entry in all_entries:
     title = entry.get("title", "")
     link = entry.get("link", "")
 
-    if not title or not link or link in seen:
+    if not title or not link:
         continue
 
-    if not is_relevant(title):
-        continue
+    
+    # if not is_relevant(title):
+    #     continue
 
     source = get_source(entry)
 
@@ -124,8 +111,9 @@ for entry in all_entries:
         f"<a href=\"{link}\">{title}</a>\n\n"
     )
 
-    seen.add(link)
     count += 1
-
     if count >= 5:
         break
+
+print(message)
+send_telegram_message(message)
