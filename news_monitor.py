@@ -1,6 +1,8 @@
 import feedparser
 import json
 import os
+import requests
+import subprocess
 
 COMPANY = "Apple"
 KEYWORDS = ["Apple", "AAPL", "Tim Cook", "iPhone"]
@@ -8,6 +10,25 @@ KEYWORDS = ["Apple", "AAPL", "Tim Cook", "iPhone"]
 RSS_URL = f"https://news.google.com/rss/search?q={COMPANY}+stock"
 SEEN_FILE = "seen.json"
 
+def is_relevant(text):
+    return any(k.lower() in text.lower() for k in KEYWORDS)
+
+def send_telegram_message(message):
+    token = os.getenv("8269638873:AAHExLZrAFPhQhxLvLnExMw5S_Tu3FDouKU")
+    chat_id = os.getenv("7901236064")
+
+    if not token or not chat_id:
+        return
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML"
+    }
+
+    requests.post(url, data=payload)
+    
 def is_relevant(text):
     return any(k.lower() in text.lower() for k in KEYWORDS)
 
