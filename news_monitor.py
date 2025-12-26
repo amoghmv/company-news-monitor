@@ -54,9 +54,6 @@ def get_source(entry):
         return "CNBC"
     if "bloomberg" in link:
         return "Bloomberg"
-    if "google.com" in link:
-        return "Google News"
-
     return "News"
 
 
