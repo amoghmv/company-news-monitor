@@ -97,21 +97,11 @@ for entry in all_entries:
     if not title or not link:
         continue
 
-    
-    # if not is_relevant(title):
-    #     continue
-
-    source = get_source(entry)
-
     message += (
         f"• <b>{title}</b>\n"
         f"<a href=\"{link}\">Read article →</a>\n\n"
-)
+    )
 
-count += 1
-if count >= 15:
-    break
-
-
-print(message)
-send_telegram_message(message)
+    count += 1
+    if count >= 15:
+        break
