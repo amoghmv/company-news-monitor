@@ -35,6 +35,11 @@ ALL_KEYWORDS = (
     MACRO_KEYWORDS
 )
 
+def is_relevant(text):
+    text = text.lower()
+    score = sum(1 for k in ALL_KEYWORDS if k in text)
+    return score >= 1
+
 def send_telegram_message(message):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
