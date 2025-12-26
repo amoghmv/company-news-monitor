@@ -4,7 +4,22 @@ import os
 import requests
 import subprocess
 
-RSS_URL = "https://news.google.com/rss/search?q=financial+markets"
+RSS_FEEDS = [
+    # Google News (broad)
+    "https://news.google.com/rss/search?q=stock+market",
+
+    # Yahoo Finance
+    "https://finance.yahoo.com/rss/topstories",
+
+    # Reuters – markets
+    "https://feeds.reuters.com/reuters/businessNews",
+
+    # Bloomberg (public mirror)
+    "https://www.bloomberg.com/feed/podcast/etf-report.xml",
+
+    # CNBC Markets
+    "https://www.cnbc.com/id/10000664/device/rss/rss.html"
+]
 
 MARKET_KEYWORDS = [
     "stock", "stocks", "equity", "equities",
