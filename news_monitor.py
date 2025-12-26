@@ -112,7 +112,7 @@ for entry in all_entries:
     )
 
     count += 1
-    if count >= 5:
+    if count >= 15:
         break
 
 print(message)
