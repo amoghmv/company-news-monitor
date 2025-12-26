@@ -4,7 +4,7 @@ import os
 import requests
 import subprocess
 
-RSS_URL = "https://news.google.com/rss/search?q=Apple+stock"
+RSS_URL = "https://news.google.com/rss/search?q=financial+markets"
 
 def send_telegram_message(message):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
