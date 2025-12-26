@@ -35,3 +35,13 @@ if not new_items:
 print("New company news:\n")
 for item in new_items:
     print("-", item.title)
+
+import subprocess
+
+# Commit updated seen.json back to repo (only if running on GitHub Actions)
+if os.getenv("GITHUB_ACTIONS") == "true":
+    subprocess.run(["git", "config", "user.name", "github-actions"])
+    subprocess.run(["git", "config", "user.email", "actions@github.com"])
+    subprocess.run(["git", "add", "seen.json"])
+    subprocess.run(["git", "commit", "-m", "Update seen news"], check=False)
+    subprocess.run(["git", "push"], check=False)
