@@ -50,10 +50,28 @@ ALL_KEYWORDS = (
     MACRO_KEYWORDS
 )
 
+SEEN_FILE = "seen.json"
+
 def is_relevant(text):
     text = text.lower()
     score = sum(1 for k in ALL_KEYWORDS if k in text)
     return score >= 1
+    
+def get_source(entry):
+    link = entry.get("link", "").lower()
+
+    if "reuters" in link:
+        return "Reuters"
+    if "yahoo" in link:
+        return "Yahoo Finance"
+    if "cnbc" in link:
+        return "CNBC"
+    if "bloomberg" in link:
+        return "Bloomberg"
+    if "google.com" in link:
+        return "Google News"
+
+    return "News"
 
 def send_telegram_message(message):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -72,6 +90,13 @@ def send_telegram_message(message):
     r = requests.post(url, data=payload)
     print("Telegram status:", r.status_code, r.text)
 
+# Load seen links
+if os.path.exists(SEEN_FILE):
+    with open(SEEN_FILE, "r") as f:
+        seen = set(json.load(f))
+else:
+    seen = set()
+
 all_entries = []
 
 for url in RSS_FEEDS:
@@ -80,9 +105,27 @@ for url in RSS_FEEDS:
 
 message = "🧪 TEST NEWS DELIVERY\n\n"
 
-for entry in feed.entries[:5]:
-    message += f"- {entry.title}\n"
+count = 0
+for entry in all_entries:
+    title = entry.get("title", "")
+    link = entry.get("link", "")
+
+    if not title or not link or link in seen:
+        continue
+
+    if not is_relevant(title):
+        continue
+
+    source = get_source(entry)
+    message += f"- [{source}] {title}\n"
+    seen.add(link)
+    count += 1
+
+    if count >= 5:
+        break
 
 print(message)
 send_telegram_message(message)
 
+with open(SEEN_FILE, "w") as f:
+    json.dump(list(seen), f)
