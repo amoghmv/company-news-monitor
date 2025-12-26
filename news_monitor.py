@@ -72,7 +72,11 @@ def send_telegram_message(message):
     r = requests.post(url, data=payload)
     print("Telegram status:", r.status_code, r.text)
 
-feed = feedparser.parse(RSS_URL)
+all_entries = []
+
+for url in RSS_FEEDS:
+    feed = feedparser.parse(url)
+    all_entries.extend(feed.entries)
 
 message = "🧪 TEST NEWS DELIVERY\n\n"
 
