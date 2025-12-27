@@ -77,7 +77,7 @@ for url in RSS_FEEDS:
 message = "📊 <b>Market News Update</b>\n\n"
 
 count = 0
-MAX_ITEMS = 10
+MAX_ITEMS = 7
 
 for entry in all_entries:
     title = entry.get("title", "")
