@@ -4,36 +4,30 @@ import os
 import requests
 
 RSS_FEEDS = [
-    "https://news.google.com/rss/search?q=stock+market",
+    "https://news.google.com/rss/search?q=financial+markets",
     "https://finance.yahoo.com/rss/topstories",
     "https://feeds.reuters.com/reuters/businessNews",
     "https://www.cnbc.com/id/10000664/device/rss/rss.html"
 ]
 
 MARKET_KEYWORDS = [
-    "stock", "stocks", "equity", "equities",
-    "share", "shares", "index", "indices",
-    "market", "markets"
+    "financial markets", "equities", "bonds",
+    "fixed income", "forex", "commodities", "fx",
+    "interest rate", "yield", "central bank", "liquidity", "risk appetite"
 ]
 
-EVENT_KEYWORDS = [
-    "earnings", "results", "guidance",
-    "ipo", "listing", "delisting",
-    "merger", "acquisition", "m&a",
-    "buyback", "dividend", "split",
-    "downgrade", "upgrade",
-    "sec", "lawsuit", "antitrust"
+TOP_COMPANIES = [
+    "apple","aapl","microsoft","msft","nvidia","nvda","amazon","amzn",
+    "google","googl","alphabet","meta","meta platforms","tesla","tsla",
+    "oracle","orcl"
 ]
 
 MACRO_KEYWORDS = [
-    "interest rates", "inflation", "cpi",
-    "federal reserve", "fed",
-    "central bank", "recession",
-    "gdp", "unemployment",
-    "bond yields", "treasury"
+    "federal reserve","feds","fed","inflation","cpi","recession",
+    "gdp","unemployment","rate hike","rate cut"
 ]
 
-ALL_KEYWORDS = MARKET_KEYWORDS + EVENT_KEYWORDS + MACRO_KEYWORDS
+ALL_KEYWORDS = MARKET_KEYWORDS + TOP_COMPANIES + MACRO_KEYWORDS
 SEEN_FILE = "seen.json"
 
 # HELPERS
