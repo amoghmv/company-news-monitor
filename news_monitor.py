@@ -2,7 +2,6 @@ import feedparser
 import json
 import os
 import requests
-import subprocess
 
 RSS_FEEDS = [
     "https://news.google.com/rss/search?q=stock+market",
@@ -37,27 +36,15 @@ MACRO_KEYWORDS = [
 ALL_KEYWORDS = MARKET_KEYWORDS + EVENT_KEYWORDS + MACRO_KEYWORDS
 SEEN_FILE = "seen.json"
 
-def is_relevant(text):
+# HELPERS
+
+def is_relevant(text: str) -> bool:
     text = text.lower()
     score = sum(1 for k in ALL_KEYWORDS if k in text)
     return score >= 1
 
 
-def get_source(entry):
-    link = entry.get("link", "").lower()
-
-    if "reuters" in link:
-        return "Reuters"
-    if "yahoo" in link:
-        return "Yahoo Finance"
-    if "cnbc" in link:
-        return "CNBC"
-    if "bloomberg" in link:
-        return "Bloomberg"
-    return "News"
-
-
-def send_telegram_message(message):
+def send_telegram_message(message: str):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
@@ -75,11 +62,15 @@ def send_telegram_message(message):
     r = requests.post(url, data=payload)
     print("Telegram status:", r.status_code, r.text)
 
-# --------------------------------
-# - seen.json
-# - is_relevant()
-# - deduplication
-# --------------------------------
+# LOAD DEDUP STATE
+
+if os.path.exists(SEEN_FILE):
+    with open(SEEN_FILE, "r") as f:
+        seen = set(json.load(f))
+else:
+    seen = set()
+
+# FETCH FEEDS
 
 all_entries = []
 
@@ -87,9 +78,13 @@ for url in RSS_FEEDS:
     feed = feedparser.parse(url)
     all_entries.extend(feed.entries)
 
-message = "📊 <b>Market News Update (TEST MODE)</b>\n\n"
+# BUILD MESSAGE
+
+message = "📊 <b>Market News Update</b>\n\n"
 
 count = 0
+MAX_ITEMS = 10
+
 for entry in all_entries:
     title = entry.get("title", "")
     link = entry.get("link", "")
@@ -97,14 +92,33 @@ for entry in all_entries:
     if not title or not link:
         continue
 
+    # Deduplication
+    if link in seen:
+        continue
+
+    # Relevance filter
+    if not is_relevant(title):
+        continue
+
     message += (
         f"• <b>{title}</b>\n"
         f"<a href=\"{link}\">Read article →</a>\n\n"
     )
 
+    seen.add(link)
     count += 1
-    if count >= 15:
+
+    if count >= MAX_ITEMS:
         break
 
-print(message)
-send_telegram_message(message)
+# SEND + SAVE STATE
+
+if count > 0:
+    print(message)
+    send_telegram_message(message)
+else:
+    print("No new relevant news.")
+
+with open(SEEN_FILE, "w") as f:
+    json.dump(list(seen), f)
+
