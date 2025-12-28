@@ -6,11 +6,13 @@ import hashlib
 import re
 
 RSS_FEEDS = [
-    "https://news.google.com/rss/search?q=financial+markets",
+    "https://seekingalpha.com/market_currents.xml",
+    "https://news.google.com/rss/search?q=financial+markets&hl=en-US&gl=US&ceid=US:en",
     "https://finance.yahoo.com/rss/topstories",
     "https://feeds.reuters.com/reuters/businessNews",
     "https://www.cnbc.com/id/10000664/device/rss/rss.html"
 ]
+
 
 MARKET_KEYWORDS = [
     "financial markets", "equities", "bonds",
