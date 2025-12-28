@@ -2,6 +2,8 @@ import feedparser
 import json
 import os
 import requests
+import hashlib
+import re
 
 RSS_FEEDS = [
     "https://news.google.com/rss/search?q=financial+markets",
@@ -56,6 +58,26 @@ def send_telegram_message(message: str):
     r = requests.post(url, data=payload)
     print("Telegram status:", r.status_code, r.text)
 
+def normalize_title(title: str) -> str:
+    title = title.lower()
+
+    # remove common prefixes
+    title = re.sub(r'^(update|breaking|live|exclusive):\s*', '', title)
+
+    # remove punctuation
+    title = re.sub(r'[^a-z0-9\s]', '', title)
+
+    # collapse whitespace
+    title = re.sub(r'\s+', ' ', title).strip()
+
+    return title
+
+
+def fingerprint(entry) -> str:
+    title = entry.get("title", "")
+    normalized = normalize_title(title)
+    return hashlib.md5(normalized.encode("utf-8")).hexdigest()
+
 # LOAD DEDUP STATE
 
 if os.path.exists(SEEN_FILE):
@@ -86,8 +108,8 @@ for entry in all_entries:
     if not title or not link:
         continue
 
-    # Deduplication
-    if link in seen:
+    fp = fingerprint(entry)
+    if fp in seen:
         continue
 
     # Relevance filter
@@ -99,7 +121,7 @@ for entry in all_entries:
         f"<a href=\"{link}\">Read article →</a>\n\n"
     )
 
-    seen.add(link)
+    seen.add(fp)
     count += 1
 
     if count >= MAX_ITEMS:
