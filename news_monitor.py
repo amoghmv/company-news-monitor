@@ -15,7 +15,8 @@ RSS_FEEDS = [
 MARKET_KEYWORDS = [
     "financial markets", "equities", "bonds",
     "fixed income", "forex", "commodities", "fx",
-    "interest rate", "yield", "central bank", "liquidity", "risk appetite"
+    "interest rate", "yield", "central bank", "liquidity", "risk appetite",
+    "nasdaq","s&p 500","volatility"
 ]
 
 TOP_COMPANIES = [
