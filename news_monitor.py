@@ -6,7 +6,7 @@ import hashlib
 import re
 
 # =========================
-# RSS FEEDS (US-focused)
+# RSS FEEDS
 # =========================
 
 RSS_FEEDS = [
@@ -17,49 +17,15 @@ RSS_FEEDS = [
     "https://www.cnbc.com/id/10000664/device/rss/rss.html"
 ]
 
-# =========================
-# KEYWORDS (LOOSENED)
-# =========================
-
-MARKET_KEYWORDS = [
-    "market", "markets",
-    "stock", "stocks",
-    "shares",
-    "wall street",
-    "futures",
-    "dow", "nasdaq", "s&p",
-    "index", "indexes",
-    "yields", "treasury",
-    "bond", "bonds",
-    "volatility",
-    "selloff", "rally"
-]
-
-TOP_COMPANIES = [
-    "apple","aapl","microsoft","msft","nvidia","nvda",
-    "amazon","amzn","google","googl","alphabet",
-    "meta","tesla","tsla","oracle","orcl"
-]
-
-MACRO_KEYWORDS = [
-    "fed", "federal reserve",
-    "inflation", "cpi",
-    "recession", "gdp",
-    "unemployment",
-    "rate hike", "rate cut",
-    "interest rate"
-]
-
-ALL_KEYWORDS = MARKET_KEYWORDS + TOP_COMPANIES + MACRO_KEYWORDS
 SEEN_FILE = "seen.json"
 
 # =========================
-# HELPERS
+# HELPERS (kept, not used)
 # =========================
 
 def is_relevant(text: str) -> bool:
     text = text.lower()
-    return any(k in text for k in ALL_KEYWORDS)
+    return True  # FILTER HASHED OUT
 
 
 def normalize_title(title: str) -> str:
@@ -94,31 +60,33 @@ def send_telegram_message(message: str):
     print("Telegram status:", r.status_code, r.text)
 
 # =========================
-# LOAD DEDUP STATE
+# LOAD STATE (HASHED OUT)
 # =========================
 
-if os.path.exists(SEEN_FILE):
-    with open(SEEN_FILE, "r") as f:
-        seen = set(json.load(f))
-else:
-    seen = set()
+# if os.path.exists(SEEN_FILE):
+#     with open(SEEN_FILE, "r") as f:
+#         seen = set(json.load(f))
+# else:
+#     seen = set()
 
 # =========================
 # FETCH FEEDS
 # =========================
 
 all_entries = []
+
 for url in RSS_FEEDS:
     feed = feedparser.parse(url)
     all_entries.extend(feed.entries)
 
 # =========================
-# BUILD MESSAGE
+# BUILD MESSAGE (NO FILTERS)
 # =========================
 
-message = "📊 <b>Market News Update</b>\n\n"
+message = "📊 <b>Market News Update (NO FILTERS)</b>\n\n"
+
 count = 0
-MAX_ITEMS = 5
+MAX_ITEMS = 10
 
 for entry in all_entries:
     title = entry.get("title", "")
@@ -127,40 +95,37 @@ for entry in all_entries:
     if not title or not link:
         continue
 
-    # Generate fingerprint FIRST
-    fp = fingerprint(entry)
+    # fp = fingerprint(entry)
+    # if fp in seen:
+    #     continue
 
-    # Deduplication
-    if fp in seen:
-        continue
+    # if not is_relevant(title):
+    #     continue
 
-    # Relevance filter
-    if not is_relevant(title):
-        continue
-
-    # Build message
     message += (
         f"• <b>{title}</b>\n"
         f"<a href=\"{link}\">Read article →</a>\n\n"
     )
 
-    # Store fingerprint AFTER passing filters
-    seen.add(fp)
+    # seen.add(fp)
     count += 1
 
     if count >= MAX_ITEMS:
         break
 
-
 # =========================
-# SEND + SAVE STATE
+# SEND MESSAGE
 # =========================
 
 if count > 0:
     print(message)
     send_telegram_message(message)
 else:
-    print("No new relevant news.")
+    print("No news found.")
 
-with open(SEEN_FILE, "w") as f:
-    json.dump(list(seen), f)
+# =========================
+# SAVE STATE (HASHED OUT)
+# =========================
+
+# with open(SEEN_FILE, "w") as f:
+#     json.dump(list(seen), f)
