@@ -45,6 +45,10 @@ SEEN_FILE = "seen.json"
 
 # HELPERS
 
+if not is_relevant(title):
+    print("FILTERED OUT:", title)
+    continue
+
 def is_relevant(text: str) -> bool:
     text = text.lower()
     return any(k in text for k in ALL_KEYWORDS)
