@@ -39,8 +39,7 @@ SEEN_FILE = "seen.json"
 
 def is_relevant(text: str) -> bool:
     text = text.lower()
-    score = sum(1 for k in ALL_KEYWORDS if k in text)
-    return score >= 1
+    return any(k in text for k in ALL_KEYWORDS)
 
 
 def send_telegram_message(message: str):
