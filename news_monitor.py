@@ -127,9 +127,9 @@ for entry in all_entries:
     if not title or not link:
         continue
 
-    fp = fingerprint(entry)
-    if fp in seen:
-        continue
+  #  fp = fingerprint(entry)
+  #  if fp in seen:
+   #     continue
 
     if not is_relevant(title):
         continue
