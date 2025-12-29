@@ -77,9 +77,8 @@ def send_telegram_message(message: str):
     r = requests.post(url, data=payload)
     print("Telegram status:", r.status_code, r.text)
 
-# ======================================================
+
 # LOAD DEDUP STATE
-# ======================================================
 
 if os.path.exists(SEEN_FILE):
     with open(SEEN_FILE, "r") as f:
@@ -96,7 +95,7 @@ for url in RSS_FEEDS:
 
 message = "📊 <b>Market News Update</b>\n\n"
 count = 0
-MAX_ITEMS = 5
+MAX_ITEMS = 7
 
 for entry in all_entries:
     title = entry.get("title", "")
