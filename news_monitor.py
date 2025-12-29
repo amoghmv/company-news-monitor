@@ -1,3 +1,5 @@
+print("🚨 SCRIPT STARTED 🚨")
+
 import feedparser
 import json
 import os
