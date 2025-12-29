@@ -127,23 +127,30 @@ for entry in all_entries:
     if not title or not link:
         continue
 
-  #  fp = fingerprint(entry)
-  #  if fp in seen:
-   #     continue
+    # Generate fingerprint FIRST
+    fp = fingerprint(entry)
 
+    # Deduplication
+    if fp in seen:
+        continue
+
+    # Relevance filter
     if not is_relevant(title):
         continue
 
+    # Build message
     message += (
         f"• <b>{title}</b>\n"
         f"<a href=\"{link}\">Read article →</a>\n\n"
     )
 
+    # Store fingerprint AFTER passing filters
     seen.add(fp)
     count += 1
 
     if count >= MAX_ITEMS:
         break
+
 
 # =========================
 # SEND + SAVE STATE
