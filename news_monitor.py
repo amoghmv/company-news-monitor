@@ -15,10 +15,18 @@ RSS_FEEDS = [
 
 
 MARKET_KEYWORDS = [
-    "financial markets", "equities", "bonds",
-    "fixed income", "forex", "commodities", "fx",
-    "interest rate", "yield", "central bank", "liquidity", "risk appetite",
-    "nasdaq","s&p 500","volatility"
+    "market", "markets",
+    "stock", "stocks",
+    "equity", "equities",
+    "shares",
+    "wall street",
+    "futures",
+    "indexes", "index",
+    "nasdaq", "dow", "s&p",
+    "volatility",
+    "yields", "treasury"
+]
+
 ]
 
 TOP_COMPANIES = [
