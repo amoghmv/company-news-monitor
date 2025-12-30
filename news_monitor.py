@@ -5,8 +5,10 @@ import requests
 import hashlib
 import re
 
+# ================= CONFIG =================
 TELEGRAM_BOT_TOKEN = "8308496671:AAF6kDD32Xpk985g0vD6xhWyn2xTQkg6ick"
 TELEGRAM_CHAT_ID = "-1003671640198"
+# ========================================
 
 RSS_FEEDS = [
     "https://news.google.com/rss/search?q=markets&hl=en-US&gl=US&ceid=US:en",
@@ -39,6 +41,7 @@ ALL_KEYWORDS = MARKET_KEYWORDS + TOP_COMPANIES + MACRO_KEYWORDS
 SEEN_FILE = "seen.json"
 LAST_BATCH_FILE = "last_batch.json"
 
+# ================= HELPERS =================
 
 def is_relevant(text: str) -> bool:
     return any(k in text.lower() for k in ALL_KEYWORDS)
@@ -57,7 +60,7 @@ def fingerprint(entry) -> str:
     ).hexdigest()
 
 
-def send_telegram_message(text: str, article_id: str, article_link: str):
+def send_telegram_message(text: str):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
     payload = {
@@ -68,9 +71,8 @@ def send_telegram_message(text: str, article_id: str, article_link: str):
         "reply_markup": {
             "inline_keyboard": [
                 [
-                    {"text": "Summary", "switch_inline_query_current_chat": f"//summary {article_id}"},
-                    {"text": "Why", "switch_inline_query_current_chat": f"//why {article_id}"},
-                    {"text": "Open", "url": article_link}
+                    {"text": "Summary", "switch_inline_query_current_chat": "//summary "},
+                    {"text": "Why", "switch_inline_query_current_chat": "//why "}
                 ]
             ]
         }
@@ -79,21 +81,26 @@ def send_telegram_message(text: str, article_id: str, article_link: str):
     requests.post(url, json=payload)
 
 
-# ---------- LOAD STATE ----------
+# ================= MAIN =================
+
+# Load seen fingerprints
 if os.path.exists(SEEN_FILE):
     with open(SEEN_FILE, "r") as f:
         seen = set(json.load(f))
 else:
     seen = set()
 
+# Fetch RSS entries
 all_entries = []
 for rss in RSS_FEEDS:
     feed = feedparser.parse(rss)
     all_entries.extend(feed.entries)
 
-count = 0
 MAX_ITEMS = 7
+count = 0
 last_batch = {}
+
+message = "📊 <b>Market News Update</b>\n\n"
 
 for entry in all_entries:
     title = entry.get("title", "")
@@ -102,15 +109,16 @@ for entry in all_entries:
         continue
 
     fp = fingerprint(entry)
-    if fp in seen or not is_relevant(title):
+    if fp in seen:
+        continue
+
+    if not is_relevant(title):
         continue
 
     count += 1
     article_id = str(count)
 
-    message = f"• <b>{title}</b>"
-
-    send_telegram_message(message, article_id, link)
+    message += f"<b>{article_id}.</b> {title}\n"
 
     last_batch[article_id] = {
         "title": title,
@@ -124,8 +132,18 @@ for entry in all_entries:
     if count >= MAX_ITEMS:
         break
 
+# Send message
+if count > 0:
+    message += (
+        "\n<b>Commands</b>\n"
+        "• <code>//summary &lt;number&gt;</code>\n"
+        "• <code>//why &lt;number&gt;</code>"
+    )
+    send_telegram_message(message)
+else:
+    print("No new relevant news.")
 
-# ---------- SAVE STATE ----------
+# Save state
 with open(SEEN_FILE, "w") as f:
     json.dump(list(seen), f)
 
