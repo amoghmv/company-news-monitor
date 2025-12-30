@@ -148,7 +148,7 @@ for entry in all_entries:
 
 if count > 0:
     print(message)
-    send_telegram_message(message)
+    send_telegram_message(message, article_id)
 else:
     print("No new relevant news.")
 
