@@ -77,15 +77,15 @@ def send_telegram_message(message: str, article_id: str = None):
     }
 
     if article_id:
-        payload["reply_markup"] = {
-            "inline_keyboard": [
-                [
-                    {"text": "Summary", "switch_inline_query_current_chat": f"//summary {article_id}"},
-                    {"text": "Why", "switch_inline_query_current_chat": f"//why {article_id}"},
-                    {"text": "Open", "switch_inline_query_current_chat": f"//open {article_id}"}
-                ]
+    payload["reply_markup"] = {
+        "inline_keyboard": [
+            [
+                {"text": "Summary", "switch_inline_query_current_chat": f"//summary {article_id}"},
+                {"text": "Why", "switch_inline_query_current_chat": f"//why {article_id}"},
+                {"text": "Open", "url": article_link}
             ]
-        }
+        ]
+    }
 
     requests.post(url, json=payload)
 
