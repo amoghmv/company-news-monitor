@@ -21,11 +21,12 @@ jobs:
       - run: pip install feedparser requests
 
       - run: python news_monitor.py
-      - name: Upload last batch artifact
-        uses: actions/upload-artifact@v4
+      - name: Cache last batch
+        uses: actions/cache@v4
         with:
-          name: last-batch
           path: last_batch.json
+          key: last-batch
+
 
       - name: Commit seen.json
         run: |

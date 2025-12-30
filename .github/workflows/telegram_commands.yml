@@ -16,30 +16,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Wait for artifact to be available
-        run: |
-          echo "Waiting for last-batch artifact..."
-          for i in {1..6}; do
-            echo "Attempt $i"
-            if gh api \
-              repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts \
-              --jq '.artifacts[].name' | grep -q "last-batch"; then
-              echo "Artifact found"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "Artifact not found after retries"
-          exit 1
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Download last batch artifact
-        uses: actions/download-artifact@v4
+      - name: Restore last batch cache
+        uses: actions/cache@v4
         with:
-          name: last-batch
-          run-id: ${{ github.event.workflow_run.id }}
-
+          path: last_batch.json
+          key: last-batch
 
 
       - name: Set up Python
