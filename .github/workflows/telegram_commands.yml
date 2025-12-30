@@ -2,8 +2,10 @@
 name: Telegram Command Listener
 
 on:
-  schedule:
-    - cron: "*/2 * * * *"
+  workflow_run:
+    workflows: ["Market News Monitor"]   # MUST match the name in news.yml
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
@@ -18,6 +20,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: last-batch
+          run-id: ${{ github.event.workflow_run.id }}
+
 
       - name: Set up Python
         uses: actions/setup-python@v5
