@@ -2,16 +2,12 @@ import json
 import os
 import requests
 
-# ================= CONFIG =================
-# ⚠️ TEMPORARY HARDCODED FOR TESTING ONLY
 TELEGRAM_BOT_TOKEN = "8308496671:AAF6kDD32Xpk985g0vD6xhWyn2xTQkg6ick"
 TELEGRAM_CHAT_ID = "-1003671640198"
 
-# ---------- AI CONFIG ----------
 USE_AI = False              # turn True AFTER you buy an API key
 OPENAI_API_KEY = ""         # leave empty for now
 OPENAI_MODEL = "gpt-4o-mini"
-# -----------------------------------------
 
 API_BASE = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
@@ -19,9 +15,6 @@ STATE_FILE = "telegram_state.json"
 BATCH_FILE = "last_batch.json"
 
 DISABLED_COMMANDS = ["impact", "open", "macro"]
-
-
-# ================= HELPERS =================
 
 def send_message(text):
     url = f"{API_BASE}/sendMessage"
@@ -51,9 +44,6 @@ def load_last_batch():
         return {}
     with open(BATCH_FILE, "r") as f:
         return json.load(f)
-
-
-# ================= AI SUMMARY =================
 
 def ai_summary(title, text):
     if not USE_AI or not OPENAI_API_KEY:
@@ -98,7 +88,6 @@ def ai_summary(title, text):
         return None
 
 
-# ================= MAIN =================
 
 def main():
     last_update_id = get_last_update_id()
@@ -132,11 +121,9 @@ def main():
         else:
             save_last_update_id(update_id)
             continue
-        # ------------------------------------
-
+   
         parts = text.split()
 
-        # ---------- ARG VALIDATION ----------
         if command in ["summary", "why", "impact", "open"]:
             if len(parts) != 2 or not parts[1].isdigit():
                 send_message(
@@ -156,18 +143,18 @@ def main():
             article = batch[idx]
         else:
             article = None
-        # ----------------------------------
+    
 
-        # ---------- DISABLED COMMANDS ----------
+       
         if command in DISABLED_COMMANDS:
             send_message(
                 f"⏳ <b>{command}</b> is registered but not enabled yet."
             )
             save_last_update_id(update_id)
             continue
-        # --------------------------------------
+      
 
-        # ---------- WHY ----------
+        
         if command == "why":
             title = article.get("title", "").lower()
             reasons = []
@@ -191,9 +178,9 @@ def main():
             send_message(reply)
             save_last_update_id(update_id)
             continue
-        # -------------------------
+        
 
-        # ---------- SUMMARY ----------
+      
         if command == "summary":
             summary_text = ai_summary(
                 article.get("title", ""),
@@ -213,7 +200,7 @@ def main():
             send_message(reply)
             save_last_update_id(update_id)
             continue
-        # -----------------------------
+       
 
 
 if __name__ == "__main__":
