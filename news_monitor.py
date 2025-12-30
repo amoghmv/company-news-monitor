@@ -66,17 +66,28 @@ def fingerprint(entry) -> str:
     normalized = normalize_title(entry.get("title", ""))
     return hashlib.md5(normalized.encode("utf-8")).hexdigest()
 
-
-def send_telegram_message(message: str):
+def send_telegram_message(message: str, article_id: str = None):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message,
-        "parse_mode": "HTML"
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True
     }
 
-    r = requests.post(url, data=payload)
-    print("Telegram status:", r.status_code, r.text)
+    if article_id:
+        payload["reply_markup"] = {
+            "inline_keyboard": [
+                [
+                    {"text": "Summary", "switch_inline_query_current_chat": f"//summary {article_id}"},
+                    {"text": "Why", "switch_inline_query_current_chat": f"//why {article_id}"},
+                    {"text": "Open", "switch_inline_query_current_chat": f"//open {article_id}"}
+                ]
+            ]
+        }
+
+    requests.post(url, json=payload)
 
 
 # LOAD DEDUP STATE
