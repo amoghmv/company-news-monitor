@@ -13,6 +13,8 @@ API_BASE = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 STATE_FILE = "telegram_state.json"
 BATCH_FILE = "last_batch.json"
 
+DISABLED_COMMANDS = ["impact", "open", "macro"]
+
 
 def send_message(text):
     url = f"{API_BASE}/sendMessage"
@@ -73,14 +75,24 @@ def main():
             command = "summary"
         elif text.startswith("//why"):
             command = "why"
+        elif text.startswith("//impact"):
+            command = "impact"
+        elif text.startswith("//open"):
+            command = "open"
+        elif text.startswith("//macro"):
+            command = "macro"
         else:
             save_last_update_id(update_id)
             continue
-        # --------------------------------------
+        # ------------------------------------
 
         parts = text.split()
         if len(parts) != 2 or not parts[1].isdigit():
-            send_message("Usage: <code>//summary 1</code> or <code>//why 1</code>")
+            send_message(
+                "Usage:\n"
+                "<code>//summary 1</code>\n"
+                "<code>//why 1</code>"
+            )
             save_last_update_id(update_id)
             continue
 
@@ -92,6 +104,16 @@ def main():
             continue
 
         article = batch[idx]
+
+        # ---------- DISABLED COMMANDS ----------
+        if command in DISABLED_COMMANDS:
+            send_message(
+                f"⏳ <b>{command}</b> is registered but not enabled yet.\n\n"
+                "This command will be activated in a future update."
+            )
+            save_last_update_id(update_id)
+            continue
+        # --------------------------------------
 
         # ---------- WHY COMMAND ----------
         if command == "why":
