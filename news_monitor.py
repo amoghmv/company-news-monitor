@@ -47,6 +47,7 @@ MACRO_KEYWORDS = [
 ALL_KEYWORDS = MARKET_KEYWORDS + TOP_COMPANIES + MACRO_KEYWORDS
 
 SEEN_FILE = "seen.json"
+LAST_BATCH_FILE = "last_batch.json"
 
 def is_relevant(text: str) -> bool:
     text = text.lower()
@@ -95,6 +96,7 @@ for url in RSS_FEEDS:
 
 message = "📊 <b>Market News Update</b>\n\n"
 count = 0
+last_batch = {}
 MAX_ITEMS = 7
 
 for entry in all_entries:
@@ -119,6 +121,15 @@ for entry in all_entries:
     seen.add(fp)
     count += 1
 
+article_id = str(count)
+
+last_batch[article_id] = {
+    "title": title,
+    "link": link,
+    "rss_summary": entry.get("summary", ""),
+    "fingerprint": fp
+}
+
     if count >= MAX_ITEMS:
         break
 
@@ -133,3 +144,7 @@ else:
 
 with open(SEEN_FILE, "w") as f:
     json.dump(list(seen), f)
+
+with open(LAST_BATCH_FILE, "w") as f:
+    json.dump(last_batch, f, indent=2)
+
