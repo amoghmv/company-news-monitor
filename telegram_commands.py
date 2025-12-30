@@ -2,12 +2,14 @@ import json
 import os
 import requests
 
+# ================= CONFIG =================
 TELEGRAM_BOT_TOKEN = "8308496671:AAF6kDD32Xpk985g0vD6xhWyn2xTQkg6ick"
 TELEGRAM_CHAT_ID = "-1003671640198"
 
 USE_AI = False              # turn True AFTER you buy an API key
 OPENAI_API_KEY = ""         # leave empty for now
 OPENAI_MODEL = "gpt-4o-mini"
+# ========================================
 
 API_BASE = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
@@ -16,15 +18,17 @@ BATCH_FILE = "last_batch.json"
 
 DISABLED_COMMANDS = ["impact", "open", "macro"]
 
+
 def send_message(text):
-    url = f"{API_BASE}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": True
-    }
-    requests.post(url, json=payload)
+    requests.post(
+        f"{API_BASE}/sendMessage",
+        json={
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True
+        }
+    )
 
 
 def get_last_update_id():
@@ -45,48 +49,44 @@ def load_last_batch():
     with open(BATCH_FILE, "r") as f:
         return json.load(f)
 
+
+# ---------- AI SUMMARY (kept, gated) ----------
 def ai_summary(title, text):
     if not USE_AI or not OPENAI_API_KEY:
         return None
 
     try:
-        headers = {
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-            "Content-Type": "application/json"
-        }
-
-        prompt = (
-            "Summarize the following financial news.\n"
-            "Rules:\n"
-            "- 3 to 5 bullet points\n"
-            "- Neutral, professional tone\n"
-            "- Focus on facts and market relevance\n\n"
-            f"Title: {title}\n\n"
-            f"Article:\n{text}"
-        )
-
-        payload = {
-            "model": OPENAI_MODEL,
-            "messages": [
-                {"role": "system", "content": "You are a professional financial analyst."},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.2
-        }
-
         r = requests.post(
             "https://api.openai.com/v1/chat/completions",
-            headers=headers,
-            json=payload,
+            headers={
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": OPENAI_MODEL,
+                "messages": [
+                    {"role": "system", "content": "You are a professional financial analyst."},
+                    {
+                        "role": "user",
+                        "content": (
+                            "Summarize the following financial news.\n"
+                            "- 3 to 5 bullet points\n"
+                            "- Neutral tone\n"
+                            "- Market relevance only\n\n"
+                            f"Title: {title}\n\n{text}"
+                        )
+                    }
+                ],
+                "temperature": 0.2
+            },
             timeout=20
         )
 
-        data = r.json()
-        return data["choices"][0]["message"]["content"]
+        return r.json()["choices"][0]["message"]["content"]
 
     except Exception:
         return None
-
+# -------------------------------------------
 
 
 def main():
@@ -107,7 +107,7 @@ def main():
         update_id = update["update_id"]
         text = update.get("message", {}).get("text", "").strip()
 
-        # ---------- COMMAND DISPATCH ----------
+        # ---- command detection ----
         if text.startswith("//summary"):
             command = "summary"
         elif text.startswith("//why"):
@@ -121,66 +121,54 @@ def main():
         else:
             save_last_update_id(update_id)
             continue
-   
+        # ---------------------------
+
         parts = text.split()
-
-        if command in ["summary", "why", "impact", "open"]:
-            if len(parts) != 2 or not parts[1].isdigit():
-                send_message(
-                    "Usage:\n"
-                    "<code>//summary 1</code>\n"
-                    "<code>//why 1</code>"
-                )
-                save_last_update_id(update_id)
-                continue
-
-            idx = parts[1]
-            if idx not in batch:
-                send_message("Invalid article number.")
-                save_last_update_id(update_id)
-                continue
-
-            article = batch[idx]
-        else:
-            article = None
-    
-
-       
-        if command in DISABLED_COMMANDS:
+        if len(parts) != 2 or not parts[1].isdigit():
             send_message(
-                f"⏳ <b>{command}</b> is registered but not enabled yet."
+                "Usage:\n"
+                "<code>//summary &lt;number&gt;</code>\n"
+                "<code>//why &lt;number&gt;</code>"
             )
             save_last_update_id(update_id)
             continue
-      
 
-        
+        idx = parts[1]
+        if idx not in batch:
+            send_message("Invalid article number.")
+            save_last_update_id(update_id)
+            continue
+
+        article = batch[idx]
+
+        if command in DISABLED_COMMANDS:
+            send_message(f"⏳ <b>{command}</b> is registered but not enabled yet.")
+            save_last_update_id(update_id)
+            continue
+
+        # ---- WHY ----
         if command == "why":
             title = article.get("title", "").lower()
             reasons = []
 
-            if any(k in title for k in ["fed", "rate", "rates", "inflation", "yield"]):
+            if any(k in title for k in ["fed", "rate", "inflation", "yield"]):
                 reasons.append("Impacts monetary policy expectations and bond yields")
 
-            if any(k in title for k in ["recession", "slowdown", "growth"]):
+            if any(k in title for k in ["recession", "growth", "slowdown"]):
                 reasons.append("Affects risk sentiment and equity positioning")
-
-            if any(k in title for k in ["oil", "energy", "commodity"]):
-                reasons.append("May influence inflation dynamics and input costs")
 
             if not reasons:
                 reasons.append("Relevant for overall market positioning")
 
-            reply = "🧠 <b>Why this matters</b>\n\n"
-            for r in reasons:
-                reply += f"• {r}\n"
+            reply = "🧠 <b>Why this matters</b>\n\n" + "\n".join(
+                f"• {r}" for r in reasons
+            )
 
             send_message(reply)
             save_last_update_id(update_id)
             continue
-        
 
-      
+        # ---- SUMMARY ----
         if command == "summary":
             summary_text = ai_summary(
                 article.get("title", ""),
@@ -200,7 +188,6 @@ def main():
             send_message(reply)
             save_last_update_id(update_id)
             continue
-       
 
 
 if __name__ == "__main__":
