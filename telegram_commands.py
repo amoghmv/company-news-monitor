@@ -6,7 +6,12 @@ import requests
 # ⚠️ TEMPORARY HARDCODED FOR TESTING ONLY
 TELEGRAM_BOT_TOKEN = "8308496671:AAF6kDD32Xpk985g0vD6xhWyn2xTQkg6ick"
 TELEGRAM_CHAT_ID = "-1003671640198"
-# ========================================
+
+# ---------- AI CONFIG ----------
+USE_AI = False              # turn True AFTER you buy an API key
+OPENAI_API_KEY = ""         # leave empty for now
+OPENAI_MODEL = "gpt-4o-mini"
+# -----------------------------------------
 
 API_BASE = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
@@ -16,6 +21,8 @@ BATCH_FILE = "last_batch.json"
 DISABLED_COMMANDS = ["impact", "open", "macro"]
 
 
+# ================= HELPERS =================
+
 def send_message(text):
     url = f"{API_BASE}/sendMessage"
     payload = {
@@ -24,8 +31,7 @@ def send_message(text):
         "parse_mode": "HTML",
         "disable_web_page_preview": True
     }
-    r = requests.post(url, json=payload)
-    print("Send status:", r.status_code)
+    requests.post(url, json=payload)
 
 
 def get_last_update_id():
@@ -47,28 +53,70 @@ def load_last_batch():
         return json.load(f)
 
 
+# ================= AI SUMMARY =================
+
+def ai_summary(title, text):
+    if not USE_AI or not OPENAI_API_KEY:
+        return None
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        prompt = (
+            "Summarize the following financial news.\n"
+            "Rules:\n"
+            "- 3 to 5 bullet points\n"
+            "- Neutral, professional tone\n"
+            "- Focus on facts and market relevance\n\n"
+            f"Title: {title}\n\n"
+            f"Article:\n{text}"
+        )
+
+        payload = {
+            "model": OPENAI_MODEL,
+            "messages": [
+                {"role": "system", "content": "You are a professional financial analyst."},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.2
+        }
+
+        r = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=20
+        )
+
+        data = r.json()
+        return data["choices"][0]["message"]["content"]
+
+    except Exception:
+        return None
+
+
+# ================= MAIN =================
+
 def main():
     last_update_id = get_last_update_id()
 
-    url = f"{API_BASE}/getUpdates"
-    params = {
-        "offset": last_update_id + 1,
-        "timeout": 0
-    }
+    r = requests.get(
+        f"{API_BASE}/getUpdates",
+        params={"offset": last_update_id + 1, "timeout": 0}
+    ).json()
 
-    response = requests.get(url, params=params).json()
-    updates = response.get("result", [])
-
+    updates = r.get("result", [])
     if not updates:
-        print("No new Telegram updates.")
         return
 
     batch = load_last_batch()
 
     for update in updates:
         update_id = update["update_id"]
-        message = update.get("message", {})
-        text = message.get("text", "").strip()
+        text = update.get("message", {}).get("text", "").strip()
 
         # ---------- COMMAND DISPATCH ----------
         if text.startswith("//summary"):
@@ -88,7 +136,7 @@ def main():
 
         parts = text.split()
 
-        # ---------- ARGUMENT VALIDATION ----------
+        # ---------- ARG VALIDATION ----------
         if command in ["summary", "why", "impact", "open"]:
             if len(parts) != 2 or not parts[1].isdigit():
                 send_message(
@@ -100,7 +148,6 @@ def main():
                 continue
 
             idx = parts[1]
-
             if idx not in batch:
                 send_message("Invalid article number.")
                 save_last_update_id(update_id)
@@ -109,36 +156,33 @@ def main():
             article = batch[idx]
         else:
             article = None
-        # ----------------------------------------
+        # ----------------------------------
 
         # ---------- DISABLED COMMANDS ----------
         if command in DISABLED_COMMANDS:
             send_message(
-                f"⏳ <b>{command}</b> is registered but not enabled yet.\n\n"
-                "This command will be activated in a future update."
+                f"⏳ <b>{command}</b> is registered but not enabled yet."
             )
             save_last_update_id(update_id)
             continue
         # --------------------------------------
 
-        # ---------- WHY COMMAND ----------
+        # ---------- WHY ----------
         if command == "why":
             title = article.get("title", "").lower()
             reasons = []
 
             if any(k in title for k in ["fed", "rate", "rates", "inflation", "yield"]):
-                reasons.append("Signals potential shifts in monetary policy expectations")
-                reasons.append("Direct impact on bond yields and rate-sensitive equities")
+                reasons.append("Impacts monetary policy expectations and bond yields")
 
             if any(k in title for k in ["recession", "slowdown", "growth"]):
-                reasons.append("Raises concerns about economic growth momentum")
-                reasons.append("Negative for risk assets and cyclicals")
+                reasons.append("Affects risk sentiment and equity positioning")
 
             if any(k in title for k in ["oil", "energy", "commodity"]):
-                reasons.append("Could influence inflation dynamics and input costs")
+                reasons.append("May influence inflation dynamics and input costs")
 
             if not reasons:
-                reasons.append("Relevant for overall market sentiment and positioning")
+                reasons.append("Relevant for overall market positioning")
 
             reply = "🧠 <b>Why this matters</b>\n\n"
             for r in reasons:
@@ -147,23 +191,30 @@ def main():
             send_message(reply)
             save_last_update_id(update_id)
             continue
-        # --------------------------------
+        # -------------------------
 
-        # ---------- SUMMARY COMMAND ----------
+        # ---------- SUMMARY ----------
         if command == "summary":
+            summary_text = ai_summary(
+                article.get("title", ""),
+                article.get("rss_summary", "")
+            )
+
+            if not summary_text:
+                summary_text = article.get("rss_summary", "")[:1500]
+
             reply = (
                 f"🧠 <b>Summary</b>\n\n"
                 f"<b>{article.get('title','')}</b>\n\n"
-                f"{article.get('rss_summary','')[:1500]}\n\n"
+                f"{summary_text}\n\n"
                 f"<a href=\"{article.get('link','')}\">Read full article →</a>"
             )
 
             send_message(reply)
             save_last_update_id(update_id)
             continue
-        # ------------------------------------
+        # -----------------------------
 
 
 if __name__ == "__main__":
     main()
-
