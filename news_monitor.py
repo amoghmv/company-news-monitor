@@ -66,7 +66,7 @@ def fingerprint(entry) -> str:
     normalized = normalize_title(entry.get("title", ""))
     return hashlib.md5(normalized.encode("utf-8")).hexdigest()
 
-def send_telegram_message(message: str, article_id: str = None):
+def send_telegram_message(message: str, article_id: str = None, article_link: str = None):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
     payload = {
