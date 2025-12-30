@@ -87,23 +87,29 @@ def main():
         # ------------------------------------
 
         parts = text.split()
-        if len(parts) != 2 or not parts[1].isdigit():
-            send_message(
-                "Usage:\n"
-                "<code>//summary 1</code>\n"
-                "<code>//why 1</code>"
-            )
-            save_last_update_id(update_id)
-            continue
 
-        idx = parts[1]
+        # ---------- ARGUMENT VALIDATION ----------
+        if command in ["summary", "why", "impact", "open"]:
+            if len(parts) != 2 or not parts[1].isdigit():
+                send_message(
+                    "Usage:\n"
+                    "<code>//summary 1</code>\n"
+                    "<code>//why 1</code>"
+                )
+                save_last_update_id(update_id)
+                continue
 
-        if idx not in batch:
-            send_message("Invalid article number.")
-            save_last_update_id(update_id)
-            continue
+            idx = parts[1]
 
-        article = batch[idx]
+            if idx not in batch:
+                send_message("Invalid article number.")
+                save_last_update_id(update_id)
+                continue
+
+            article = batch[idx]
+        else:
+            article = None
+        # ----------------------------------------
 
         # ---------- DISABLED COMMANDS ----------
         if command in DISABLED_COMMANDS:
@@ -160,3 +166,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
