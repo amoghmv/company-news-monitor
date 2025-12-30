@@ -21,6 +21,11 @@ jobs:
       - run: pip install feedparser requests
 
       - run: python news_monitor.py
+      - name: Upload last batch artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: last-batch
+          path: last_batch.json
 
       - name: Commit seen.json
         run: |
