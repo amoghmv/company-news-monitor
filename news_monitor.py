@@ -121,14 +121,13 @@ for entry in all_entries:
     seen.add(fp)
     count += 1
 
-article_id = str(count)
-
-last_batch[article_id] = {
-    "title": title,
-    "link": link,
-    "rss_summary": entry.get("summary", ""),
-    "fingerprint": fp
-}
+    article_id = str(count)
+    last_batch[article_id] = {
+        "title": title,
+        "link": link,
+        "rss_summary": entry.get("summary", ""),
+        "fingerprint": fp
+    }
 
     if count >= MAX_ITEMS:
         break
