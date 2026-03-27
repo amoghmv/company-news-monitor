@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   run-monitor:
+    environment: Development
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
