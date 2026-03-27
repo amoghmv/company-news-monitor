@@ -19,9 +19,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install feedparser requests
+      - name: Install deps
+        run: pip install feedparser requests
 
-      - run: python news_monitor.py
+      - name: Run news_monitor.py
+        run: python news_monitor.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ vars.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
+          USE_AI: ${{ vars.USE_AI }}          # env variables use vars.*
+          OPENAI_API_KEY: ${{ vars.OPENAI_API_KEY }}
       - name: Cache last batch
         uses: actions/cache@v4
         with:
