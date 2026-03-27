@@ -6,8 +6,8 @@ import hashlib
 import re
 
 # ================= CONFIG =================
-TELEGRAM_BOT_TOKEN = "xxxx"
-TELEGRAM_CHAT_ID = "xxxx"
+TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 # ========================================
 
 RSS_FEEDS = [
