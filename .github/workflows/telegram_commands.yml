@@ -1,9 +1,8 @@
-
 name: Telegram Command Listener
 
 on:
   workflow_run:
-    workflows: ["Market News Monitor"]   # MUST match the name in news.yml
+    workflows: ["Market News Monitor"]
     types:
       - completed
   workflow_dispatch:
@@ -11,7 +10,7 @@ on:
 jobs:
   listen:
     runs-on: ubuntu-latest
-    environment: Development
+    environment: production
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -22,7 +21,6 @@ jobs:
           path: last_batch.json
           key: last-batch
 
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -32,10 +30,21 @@ jobs:
         run: |
           pip install requests feedparser
 
+      - name: Debug environment
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "=== All Environment Variables ==="
+          env | sort
+          echo ""
+          echo "=== Secret Values ==="
+          echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN"
+          echo "TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID"
+
       - name: Run Telegram command listener
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python telegram_commands.py
-
