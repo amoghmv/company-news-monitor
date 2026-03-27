@@ -3,11 +3,12 @@ import os
 import requests
 
 # ================= CONFIG =================
-TELEGRAM_BOT_TOKEN = "xxxx"
-TELEGRAM_CHAT_ID = "xxxx"
+TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
-USE_AI = False              # turn True AFTER you buy an API key
-OPENAI_API_KEY = ""         # leave empty for now
+USE_AI = os.environ.get("USE_AI", "false").strip().lower() == "true"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
 OPENAI_MODEL = "gpt-4o-mini"
 # ========================================
 
@@ -18,6 +19,8 @@ BATCH_FILE = "last_batch.json"
 
 DISABLED_COMMANDS = ["impact", "open", "macro"]
 
+print("Available environment variables")
+print(list(os.environ.items()))
 
 def send_message(text):
     requests.post(
