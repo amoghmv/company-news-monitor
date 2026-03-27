@@ -10,7 +10,7 @@ on:
 jobs:
   listen:
     runs-on: ubuntu-latest
-    environment: Development
+    environment: production
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -32,8 +32,8 @@ jobs:
 
       - name: Debug environment
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ vars.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
         run: |
           echo "=== All Environment Variables ==="
           env | sort
@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Telegram command listener
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ vars.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
         run: |
           python telegram_commands.py
