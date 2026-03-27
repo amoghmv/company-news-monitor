@@ -11,7 +11,7 @@ on:
 jobs:
   listen:
     runs-on: ubuntu-latest
-    environment: production
+    environment: Development
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
